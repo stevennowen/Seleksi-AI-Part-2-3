@@ -55,33 +55,3 @@ class KNNClassifier:
         X_test = np.array(X_test)
         predictions = [self._predict_single(x) for x in X_test]
         return np.array(predictions)
-
-
-if __name__ == '__main__':
-
-    df = pd.read_csv('../../dataset/Student_corrected.csv')
-    X = df.drop(columns=['GradeClass'])
-    y = df['GradeClass']
-
-    # Split dataset menjadi training dan testing
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    print("Contoh Penggunaan KNN Classifier From Scratch\n")
-
-    # 1. Menggunakan jarak Euclidean
-    knn_euclidean = KNNClassifier(k=3, metric='euclidean')
-    knn_euclidean.fit(X_train, y_train)
-    predictions_euclidean = knn_euclidean.predict(X_test)
-    print(f"Prediksi dengan Jarak Euclidean (k=3) untuk {X_test}: {predictions_euclidean}")
-
-    # 2. Menggunakan jarak Manhattan
-    knn_manhattan = KNNClassifier(k=3, metric='manhattan')
-    knn_manhattan.fit(X_train, y_train)
-    predictions_manhattan = knn_manhattan.predict(X_test)
-    print(f"Prediksi dengan Jarak Manhattan (k=3) untuk {X_test}: {predictions_manhattan}")
-
-    # 3. Menggunakan jarak Minkowski
-    knn_minkowski = KNNClassifier(k=3, metric='minkowski', p=4)
-    knn_minkowski.fit(X_train, y_train)
-    predictions_minkowski = knn_minkowski.predict(X_test)
-    print(f"Prediksi dengan Jarak Minkowski (k=3, p=4) untuk {X_test}: {predictions_minkowski}")
