@@ -1,6 +1,6 @@
 import numpy as np
 
-class GaussianNaiveBayes:
+class myGaussianNaiveBayes:
 
     def fit(self, X, y):
 
@@ -48,30 +48,3 @@ class GaussianNaiveBayes:
     def predict(self, X):
         y_pred = [self._predict_single(x) for x in X]
         return np.array(y_pred)
-
-if __name__ == '__main__':
-    from sklearn.model_selection import train_test_split
-    from sklearn.metrics import accuracy_score
-    from sklearn.datasets import make_classification
-
-    # Membuat dataset sintetis untuk klasifikasi
-    X, y = make_classification(n_samples=150, n_features=2, n_informative=2, n_redundant=0, n_classes=3, n_clusters_per_class=1, flip_y=0, random_state=42)
-    
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
-
-    print("Contoh Penggunaan Gaussian Naive Bayes Classifier From Scratch\n")
-
-    # Inisialisasi dan latih model
-    gnb = GaussianNaiveBayes()
-    gnb.fit(X_train, y_train)
-    
-    # Lakukan prediksi
-    predictions = gnb.predict(X_test)
-
-    print(f"Data Uji:\n{X_test[:5]}")
-    print(f"Prediksi:\n{predictions[:5]}")
-    print(f"Label Asli:\n{y_test[:5]}")
-    
-    # Evaluasi akurasi
-    accuracy = accuracy_score(y_test, predictions)
-    print(f"\nAkurasi model: {accuracy * 100:.2f}%")
