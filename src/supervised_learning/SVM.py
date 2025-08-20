@@ -23,13 +23,12 @@ class mySVM:
 
     @staticmethod
     def rbf_kernel(x1, x2, gamma=0.1):
-        # Karena x1 bisa jadi vektor (1 sample) dan x2 matriks (banyak sample)
         if x1.ndim == 1:
             x1 = x1.reshape(1, -1)
         if x2.ndim == 1:
             x2 = x2.reshape(1, -1)
         
-        # Menghitung kuadrat jarak Euclid
+        # jarak Euclid
         dist_sq = np.sum(x1**2, axis=1).reshape(-1, 1) + np.sum(x2**2, axis=1) - 2 * np.dot(x1, x2.T)
         return np.exp(-gamma * dist_sq)
 
@@ -43,7 +42,7 @@ class mySVM:
 
         K = self.kernel(X, X)
 
-        # Proses training dengan gradient descent
+        # training dengan gradient descent
         for _ in range(self.n_iters):
             for idx, x_i in enumerate(X):
                 # Kondisi untuk update bobot (berdasarkan hinge loss)
