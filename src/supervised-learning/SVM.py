@@ -10,7 +10,7 @@ class mySVM:
         self.weights = None
         self.bias = None
 
-    # FUNGSI KERNEL
+    # Fungsi Kernel
     @staticmethod
     def linear_kernel(x1, x2):
         """Kernel linear (produk titik)."""
@@ -23,14 +23,13 @@ class mySVM:
 
     @staticmethod
     def rbf_kernel(x1, x2, gamma=0.1):
-        # Karena x1 bisa jadi vektor (1 sample) dan x2 matriks (banyak sample),
-        # kita perlu perhitungan jarak yang sesuai.
+        # Karena x1 bisa jadi vektor (1 sample) dan x2 matriks (banyak sample)
         if x1.ndim == 1:
             x1 = x1.reshape(1, -1)
         if x2.ndim == 1:
             x2 = x2.reshape(1, -1)
         
-        # Menghitung kuadrat jarak Euclidean
+        # Menghitung kuadrat jarak Euclid
         dist_sq = np.sum(x1**2, axis=1).reshape(-1, 1) + np.sum(x2**2, axis=1) - 2 * np.dot(x1, x2.T)
         return np.exp(-gamma * dist_sq)
 
@@ -62,10 +61,9 @@ class mySVM:
 
     def predict(self, X):
 
-        # Mengaplikasikan kernel antara data training dan data uji
         K = self.kernel(self.X_train, X)
         
-        # Menghitung output dari decision function
+        # hitung output
         linear_output = np.dot(self.weights, K) - self.bias
         
         return np.sign(linear_output).astype(int)

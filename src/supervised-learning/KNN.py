@@ -37,7 +37,7 @@ class myKNN:
     
     def _predict_single(self, x_test):
 
-        # 1. Hitung jarak dari titik uji ke semua titik training
+        # 1. Menghitung jarak dari titik uji ke semua titik training
         distances = [self._calculate_distance(x_test, x_train) for x_train in self.X_train]
         
         # 2. Dapatkan indeks dari k tetangga terdekat

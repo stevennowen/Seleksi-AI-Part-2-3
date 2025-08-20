@@ -65,7 +65,7 @@ class mySoftmaxRegression:
         n_features, n_classes = self.weights.shape
 
         for i in range(self.n_iters):
-            # 1. Hitung probabilitas
+            # 1. Menghitung probabilitas
             linear_model = np.dot(X, self.weights)
             probas = self._softmax(linear_model)
 
@@ -96,8 +96,7 @@ class mySoftmaxRegression:
                     # Fallback ke Gradient Descent jika Hessian singular (tidak bisa di-invers)
                     print(f"Iterasi {i}, kelas {c}: Hessian singular, fallback ke GD.")
                     self.weights[:, c] -= self.lr * gradient[:, c]
-            
-            # Print Process
+
             if i % 10 == 0:
                 loss = -np.mean(np.sum(y_one_hot * np.log(probas + 1e-9), axis=1))
                 print(f"Iterasi {i}: Loss = {loss:.4f}")
