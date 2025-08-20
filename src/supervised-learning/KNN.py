@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from collections import Counter
 
-class KNNClassifier:
+class myKNN:
 
     def __init__(self, k=5, metric='euclidean', p=3):
 
