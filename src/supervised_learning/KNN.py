@@ -23,15 +23,12 @@ class myKNN:
     def _calculate_distance(self, p1, p2):
        
         if self.metric == 'euclidean':
-            # euclidean
             return np.sqrt(np.sum((p1 - p2)**2))
         
         elif self.metric == 'manhattan':
-            # manhattan
             return np.sum(np.abs(p1 - p2))
         
         elif self.metric == 'minkowski':
-            # minkowski
             return np.power(np.sum(np.abs(p1 - p2)**self.p), 1/self.p)
 
     

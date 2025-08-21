@@ -39,7 +39,6 @@ class mySoftmaxRegression:
 
         y_one_hot = self._one_hot(y, n_classes)
 
-        # Pilih metode optimasi
         if self.optimizer == 'gd':
             self._gradient_descent(X, y_one_hot)
         elif self.optimizer == 'newton':

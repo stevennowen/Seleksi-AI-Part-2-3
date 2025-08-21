@@ -13,12 +13,10 @@ class mySVM:
     # Fungsi Kernel
     @staticmethod
     def linear_kernel(x1, x2):
-        """Kernel linear (produk titik)."""
         return np.dot(x1, x2.T)
         
     @staticmethod
     def polynomial_kernel(x1, x2, p=3, c=1):
-        """Kernel polinomial (bonus)."""
         return (np.dot(x1, x2.T) + c) ** p
 
     @staticmethod

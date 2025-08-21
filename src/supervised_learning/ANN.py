@@ -64,7 +64,6 @@ class Softmax(Activation):
 # 2. Layer
 
 class DenseLayer:
-    """Layer Fully Connected (Dense)."""
     def __init__(self, n_inputs, n_neurons, activation, weight_initializer='random'):
         # Inisialisasi bobot dan bias
         if weight_initializer == 'he': 
