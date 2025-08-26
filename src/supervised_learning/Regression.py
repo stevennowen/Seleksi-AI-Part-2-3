@@ -1,8 +1,7 @@
 import numpy as np
 
 class mySoftmaxRegression:
-
-    def __init__(self, optimizer='gd', learning_rate=0.01, n_iters=1000, regularization=None, lambda_param=0.1):
+    def __init__(self, optimizer='gd', learning_rate=0.01, n_iters=1000, regularization=None, lambda_param=0.01):
         if optimizer not in ['gd', 'newton']:
             raise ValueError("Optimizer harus 'gd' atau 'newton'.")
         
@@ -12,7 +11,9 @@ class mySoftmaxRegression:
         self.regularization = regularization
         self.lambda_param = lambda_param
         self.weights = None
-        self.bias = None # Untuk Newton's method, bias digabungkan ke weights
+        self.bias = None
+        self.classes_ = None
+        self.class_to_idx_ = None
 
     def _softmax(self, z):
         exp_z = np.exp(z - np.max(z, axis=1, keepdims=True))
@@ -22,6 +23,7 @@ class mySoftmaxRegression:
         return np.eye(n_classes)[y]
 
     def _add_intercept(self, X):
+        # Menambahkan kolom intercept (bias)
         intercept = np.ones((X.shape[0], 1))
         return np.concatenate((intercept, X), axis=1)
 
@@ -30,75 +32,100 @@ class mySoftmaxRegression:
         self.classes_ = np.unique(y)
         n_classes = len(self.classes_)
 
+        # Pemetaan label ke indeks
+        self.class_to_idx_ = {c: i for i, c in enumerate(self.classes_)}
+        y_indexed = np.array([self.class_to_idx_[label] for label in y])
+        y_one_hot = self._one_hot(y_indexed, n_classes)
+
         if self.optimizer == 'newton':
-            X = self._add_intercept(X)
+            X_aug = self._add_intercept(X)
             self.weights = np.zeros((n_features + 1, n_classes))
+            self._newtons_method(X_aug, y_one_hot)
         else:
             self.weights = np.zeros((n_features, n_classes))
             self.bias = np.zeros(n_classes)
-
-        y_one_hot = self._one_hot(y, n_classes)
-
-        if self.optimizer == 'gd':
             self._gradient_descent(X, y_one_hot)
-        elif self.optimizer == 'newton':
-            self._newtons_method(X, y_one_hot)
 
     def _gradient_descent(self, X, y_one_hot):
         n_samples = X.shape[0]
+        n_classes = y_one_hot.shape[1]
+        
         for i in range(self.n_iters):
+            # Langkah maju (Forward pass)
             linear_model = np.dot(X, self.weights) + self.bias
-            y_predicted = self._softmax(linear_model)
+            y_pred = self._softmax(linear_model)
             
-            dw = (1 / n_samples) * np.dot(X.T, (y_predicted - y_one_hot))
-            db = (1 / n_samples) * np.sum(y_predicted - y_one_hot, axis=0)
+            # Hitung gradien
+            error = y_pred - y_one_hot
+            dw = (1 / n_samples) * np.dot(X.T, error)
+            db = (1 / n_samples) * np.sum(error, axis=0)
             
+            # Tambahkan regularisasi
             if self.regularization == 'l2':
                 dw += (self.lambda_param / n_samples) * self.weights
-
+            
+            # Perbarui parameter
             self.weights -= self.lr * dw
             self.bias -= self.lr * db
             
-    def _newtons_method(self, X, y_one_hot):
-        n_samples = X.shape[0]
-        n_features, n_classes = self.weights.shape
+            # Opsional: Cetak loss setiap 100 iterasi
+            if i % 100 == 0:
+                loss = self._compute_loss(y_pred, y_one_hot, X)
+                print(f"Iterasi {i}: Loss = {loss:.6f}")
 
+    def _newtons_method(self, X, y_one_hot):
+        n_samples, n_features = X.shape
+        n_classes = y_one_hot.shape[1]
+        
         for i in range(self.n_iters):
-            # 1. Menghitung probabilitas
+            # Langkah maju (Forward pass)
             linear_model = np.dot(X, self.weights)
             probas = self._softmax(linear_model)
-
-            # 2. Hitung gradien (turunan pertama)
-            gradient = (-1 / n_samples) * np.dot(X.T, (y_one_hot - probas))
+            
+            # Hitung gradien
+            gradient = (1 / n_samples) * np.dot(X.T, (probas - y_one_hot))
+            
+            # Tambahkan regularisasi
             if self.regularization == 'l2':
                 gradient += (self.lambda_param / n_samples) * self.weights
             
-            # 3. Hitung matriks Hessian (turunan kedua)
-            hessian = np.zeros((n_features, n_features, n_classes))
+            # Komputasi Hessian dengan aproksimasi per kelas
             for c in range(n_classes):
-                # Diagonal matrix R_c
-                r_c = np.diag(probas[:, c] * (1 - probas[:, c]))
-                # Hessian untuk kelas c
-                hessian[:, :, c] = (1 / n_samples) * X.T @ r_c @ X
+                p_c = probas[:, c]
+                diag_w = p_c * (1 - p_c)
+                X_weighted = X * diag_w[:, np.newaxis]
+                hessian_c = np.dot(X_weighted.T, X) / n_samples
+                
                 if self.regularization == 'l2':
-                    hessian[:, :, c] += (self.lambda_param / n_samples) * np.eye(n_features)
-            
-            # 4. Update bobot untuk setiap kelas secara terpisah
-            # W_new = W_old - H^-1 * g
-            for c in range(n_classes):
+                    hessian_c += (self.lambda_param / n_samples) * np.eye(n_features)
+                
                 try:
-                    # Invers Hessian
-                    h_inv = np.linalg.inv(hessian[:, :, c])
-                    # Update bobot untuk kelas c
-                    self.weights[:, c] -= h_inv @ gradient[:, c]
+                    # Invers Hessian untuk kelas ini
+                    hessian_inv_c = np.linalg.inv(hessian_c)
+                    # Perbarui bobot untuk kelas ini
+                    self.weights[:, c] -= self.lr * np.dot(hessian_inv_c, gradient[:, c])
                 except np.linalg.LinAlgError:
-                    # Fallback ke Gradient Descent jika Hessian singular (tidak bisa di-invers)
-                    print(f"Iterasi {i}, kelas {c}: Hessian singular, fallback ke GD.")
+                    # Kembali ke gradient descent jika Hessian singular
                     self.weights[:, c] -= self.lr * gradient[:, c]
+            
+            if i % 100 == 0:
+                loss = self._compute_loss(probas, y_one_hot, X)
+                print(f"Iterasi {i}: Loss = {loss:.6f}")
 
-            if i % 10 == 0:
-                loss = -np.mean(np.sum(y_one_hot * np.log(probas + 1e-9), axis=1))
-                print(f"Iterasi {i}: Loss = {loss:.4f}")
+    def _compute_loss(self, probas, y_one_hot, X):
+        probas_clipped = np.clip(probas, 1e-15, 1 - 1e-15)
+        loss = -np.mean(np.sum(y_one_hot * np.log(probas_clipped), axis=1))
+        
+        if self.regularization == 'l2':
+            if self.optimizer == 'newton':
+                # Untuk Newton, intercept sudah termasuk di dalam bobot
+                reg_term = (self.lambda_param / (2 * X.shape[0])) * np.sum(self.weights**2)
+            else:
+                # Untuk GD, hanya bobot yang diregularisasi
+                reg_term = (self.lambda_param / (2 * X.shape[0])) * np.sum(self.weights**2)
+            loss += reg_term
+            
+        return loss
 
     def predict(self, X):
         if self.optimizer == 'newton':
@@ -108,28 +135,6 @@ class mySoftmaxRegression:
             linear_model = np.dot(X, self.weights) + self.bias
             
         probas = self._softmax(linear_model)
-        return np.argmax(probas, axis=1)
-
-if __name__ == '__main__':
-    from sklearn.datasets import make_classification
-    from sklearn.model_selection import train_test_split
-    from sklearn.metrics import accuracy_score
-
-    X, y = make_classification(n_samples=200, n_features=5, n_informative=3, n_redundant=1,
-                               n_classes=3, n_clusters_per_class=1, random_state=42)
-    
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
-
-    print("--- 1. Optimasi dengan Gradient Descent ---")
-    model_gd = mySoftmaxRegression(optimizer='gd', learning_rate=0.1, n_iters=500, regularization='l2')
-    model_gd.fit(X_train, y_train)
-    predictions_gd = model_gd.predict(X_test)
-    accuracy_gd = accuracy_score(y_test, predictions_gd)
-    print(f"Akurasi dengan Gradient Descent: {accuracy_gd * 100:.2f}%\n")
-
-    print("--- 2. Optimasi dengan Newton's Method (Bonus) ---")
-    model_newton = mySoftmaxRegression(optimizer='newton', n_iters=50, regularization='l2', learning_rate=0.1)
-    model_newton.fit(X_train, y_train)
-    predictions_newton = model_newton.predict(X_test)
-    accuracy_newton = accuracy_score(y_test, predictions_newton)
-    print(f"\nAkurasi dengan Newton's Method: {accuracy_newton * 100:.2f}%")
+        predicted_indices = np.argmax(probas, axis=1)
+        predicted_labels = self.classes_[predicted_indices]
+        return predicted_labels
