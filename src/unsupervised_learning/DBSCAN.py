@@ -7,6 +7,7 @@ class myDBSCAN:
         self.min_samples = min_samples
         self.metric = metric
         self.p = p
+        self.labels_ = None 
 
     def _get_distance(self, p1, p2):
         if self.metric == 'euclidean':
@@ -18,7 +19,7 @@ class myDBSCAN:
         else:
             raise ValueError("Metric tidak valid. Pilih 'euclidean', 'manhattan', atau 'minkowski'.")
 
-    def fit_predict(self, X):
+    def fit(self, X):
 
         n_samples = X.shape[0]
         # Inisialisasi semua label sebagai unvisited (0)
@@ -40,8 +41,6 @@ class myDBSCAN:
                 # Buat cluster baru
                 cluster_id += 1
                 self._expand_cluster(X, i, neighbors_indices, cluster_id)
-        
-        return self.labels_
 
     def _get_neighbors(self, X, point_index):
         neighbors = []

@@ -1,12 +1,13 @@
 import numpy as np
 
-class myKMeans:
+class myKmeans:
 
     def __init__(self, n_clusters=3, max_iters=100, init_method='random'):
         self.n_clusters = n_clusters
         self.max_iters = max_iters
         self.init_method = init_method
         self.centroids = None
+        self.labels_ = None
 
     def _initialize_centroids(self, X):
         n_samples, n_features = X.shape
@@ -65,5 +66,3 @@ class myKMeans:
                 new_centroids[i] = cluster_points.mean(axis=0)
         return new_centroids
 
-    def predict(self, X):
-        return self._assign_clusters(X)

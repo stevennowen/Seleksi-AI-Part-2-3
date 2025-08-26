@@ -7,6 +7,32 @@ class myPCA:
         self.mean = None
         self.explained_variance_ratio_ = None
 
+    def fit(self, X):
+        # 1. Standarisasi data
+        self.mean = np.mean(X, axis=0)
+        X_std = X - self.mean
+        
+        # 2. Hitung covariance matrix
+        cov_matrix = np.cov(X_std, rowvar=False)
+        
+        # 3. Hitung eigenvectors dan eigenvalues
+        eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
+        
+        # 4. Urutkan eigenvectors berdasarkan eigenvalues (terbesar ke terkecil)
+        eigenvectors = eigenvectors.T
+        idxs = np.argsort(eigenvalues)[::-1]
+        eigenvalues = eigenvalues[idxs]
+        eigenvectors = eigenvectors[idxs]
+        
+        # 5. Pilih semua eigenvectors
+        self.components = eigenvectors
+
+        # 6. Hitung explained variance ratio
+        total_variance = np.sum(eigenvalues)
+        explained_variance = eigenvalues[:X.shape[1]]
+        self.explained_variance_ratio_ = explained_variance / total_variance
+
+
     def fit_transform(self, X):
 
         # 1. Standarisasi data
@@ -16,7 +42,7 @@ class myPCA:
         # 2. Hitung covariance matrix
         cov_matrix = np.cov(X_std, rowvar=False)
         
-        # 3. Hitung eigenvectors dan eigenvalues dari covariance matrix
+        # 3. Hitung eigenvectors dan eigenvalues
         eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
         
         # 4. Urutkan eigenvectors berdasarkan eigenvalues (terbesar ke terkecil)
@@ -33,7 +59,7 @@ class myPCA:
         explained_variance = eigenvalues[:self.n_components]
         self.explained_variance_ratio_ = explained_variance / total_variance
         
-        # 7. Transformasikan data asli ke ruang dimensi yang lebih rendah
+        # 7. Transformasikan data asli ke dimensi yang lebih rendah
         X_transformed = np.dot(X_std, self.components.T)
         
         return X_transformed
