@@ -3,12 +3,11 @@ import numpy as np
 class mySVM:
     def __init__(self, learning_rate=0.001, C=1.0, n_iters=1000, kernel='linear', gamma='scale'):
         self.lr = learning_rate
-        self.C = C  # Parameter regularisasi
+        self.C = C 
         self.n_iters = n_iters
         self.kernel_type = kernel
         self.gamma = gamma
         
-        # Inisialisasi semua atribut
         self.alpha = None
         self.b = 0
         self.X_train = None
@@ -68,7 +67,6 @@ class mySVM:
     def _fit_binary(self, X, y):
         n_samples, n_features = X.shape
         
-        # Inisialisasi parameter
         self.alpha = np.zeros(n_samples)
         self.b = 0
         
@@ -81,7 +79,6 @@ class mySVM:
                 # Hitung prediksi
                 prediction = np.sum(self.alpha * y * K[i, :]) + self.b
                 
-                # Cek kondisi KKT
                 if y[i] * prediction < 1:
                     # Update alpha dan b
                     self.alpha[i] += self.lr * (1 - y[i] * prediction - 2 * (1/self.C) * self.alpha[i])
@@ -90,13 +87,8 @@ class mySVM:
                     # Hanya update term regularisasi
                     self.alpha[i] -= self.lr * 2 * (1/self.C) * self.alpha[i]
             
-            # Batasi nilai alpha antara [0, C]
             self.alpha = np.clip(self.alpha, 0, self.C)
             
-            # Opsional: print progress untuk dataset kecil
-            if epoch % 100 == 0 and n_samples < 1000:
-                accuracy = self._calculate_accuracy(X, y)
-                print(f"Epoch {epoch}: Akurasi = {accuracy:.4f}")
         
         # Simpan support vectors (vektor dengan alpha > 0)
         support_vector_indices = self.alpha > 1e-5
@@ -105,7 +97,6 @@ class mySVM:
         self.support_vector_alphas_ = self.alpha[support_vector_indices]
 
     def _fit_multiclass(self, X, y):
-        """Pendekatan one-vs-rest untuk klasifikasi multiclass"""
         n_classes = len(self.classes_)
         
         self.classifiers_ = []
@@ -113,7 +104,6 @@ class mySVM:
         for i, class_label in enumerate(self.classes_):
             print(f"Training classifier untuk kelas {class_label} ({i+1}/{n_classes})")
             
-            # Buat label biner untuk kelas ini
             y_binary = np.where(y == class_label, 1, -1)
             
             # Train classifier biner
@@ -139,7 +129,6 @@ class mySVM:
             return 0.0  # Return 0 jika prediksi gagal
 
     def decision_function(self, X):
-        # Cek jika model sudah di-training
         if not hasattr(self, 'classes_') or self.classes_ is None:
             raise ValueError("Model belum di-training. Panggil fit() terlebih dahulu.")
             
