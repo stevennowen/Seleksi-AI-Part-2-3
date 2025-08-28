@@ -68,7 +68,6 @@ class mySoftmaxRegression:
             self.weights -= self.lr * dw
             self.bias -= self.lr * db
             
-            # Opsional: Cetak loss setiap 100 iterasi
             if i % 100 == 0:
                 loss = self._compute_loss(y_pred, y_one_hot, X)
                 print(f"Iterasi {i}: Loss = {loss:.6f}")
