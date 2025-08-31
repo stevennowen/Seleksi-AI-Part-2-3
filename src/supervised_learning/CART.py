@@ -2,7 +2,7 @@ import numpy as np
 from collections import Counter
 
 class Node:
-    def __init__(self, feature=None, threshold=None, left=None, right=None, *, value=None):
+    def __init__(self, feature=None, threshold=None, left=None, right=None, value=None):
         self.feature = feature
         self.threshold = threshold
         self.left = left
@@ -115,3 +115,15 @@ class myDecisionTree:
         if x[node.feature] <= node.threshold:
             return self._traverse_tree(x, node.left)
         return self._traverse_tree(x, node.right)
+    
+    def get_params(self, deep=True):
+        return {
+            'min_samples_split': self.min_samples_split,
+            'max_depth': self.max_depth
+        }
+
+    def set_params(self, **params):
+        for key, value in params.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        return self

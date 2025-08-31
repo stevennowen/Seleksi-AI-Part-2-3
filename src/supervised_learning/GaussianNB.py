@@ -48,3 +48,12 @@ class myGaussianNaiveBayes:
     def predict(self, X):
         y_pred = [self._predict_single(x) for x in X]
         return np.array(y_pred)
+    
+    def get_params(self, deep=True):
+        return {}
+
+    def set_params(self, **params):
+        for key, value in params.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        return self

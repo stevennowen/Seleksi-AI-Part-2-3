@@ -51,3 +51,16 @@ class myKNN:
         X_test = np.array(X_test)
         predictions = [self._predict_single(x) for x in X_test]
         return np.array(predictions)
+
+    def get_params(self, deep=True):
+        return {
+            'k': self.k,
+            'metric': self.metric,
+            'p': self.p
+        }
+
+    def set_params(self, **params):
+        for key, value in params.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        return self

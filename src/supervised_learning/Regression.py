@@ -1,12 +1,12 @@
 import numpy as np
 
 class mySoftmaxRegression:
-    def __init__(self, optimizer='gd', learning_rate=0.01, n_iters=1000, regularization=None, lambda_param=0.01):
+    def __init__(self, optimizer='gd', lr=0.01, n_iters=1000, regularization=None, lambda_param=0.01):
         if optimizer not in ['gd', 'newton']:
             raise ValueError("Optimizer harus 'gd' atau 'newton'.")
         
         self.optimizer = optimizer
-        self.lr = learning_rate
+        self.lr = lr
         self.n_iters = n_iters
         self.regularization = regularization
         self.lambda_param = lambda_param
@@ -137,3 +137,18 @@ class mySoftmaxRegression:
         predicted_indices = np.argmax(probas, axis=1)
         predicted_labels = self.classes_[predicted_indices]
         return predicted_labels
+    
+    def get_params(self, deep=True):
+        return {
+            'lr': self.lr,
+            'n_iters': self.n_iters,
+            'regularization': self.regularization,
+            'lambda_param': self.lambda_param,
+            'optimizer': self.optimizer
+        }
+
+    def set_params(self, **params):
+        for key, value in params.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        return self

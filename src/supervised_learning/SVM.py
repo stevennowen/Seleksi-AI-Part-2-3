@@ -175,7 +175,8 @@ class mySVM:
 
     def set_params(self, **parameters):
         for parameter, value in parameters.items():
-            setattr(self, parameter, value)
+            if hasattr(self, parameter):
+                setattr(self, parameter, value)
         return self
 
     def score(self, X, y):
