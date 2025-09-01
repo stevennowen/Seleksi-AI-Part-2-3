@@ -16,11 +16,10 @@ class mySVM:
         self.support_vectors_ = None
         self.support_vector_labels_ = None
         self.support_vector_alphas_ = None
-        self.classifiers_ = []  # Untuk klasifikasi multiclass
-        self.class_weights_ = []  # Untuk multiclass
-        self.class_biases_ = []  # Untuk multiclass
+        self.classifiers_ = []  
+        self.class_weights_ = []  
+        self.class_biases_ = []  
         
-        # Set fungsi kernel
         if kernel == 'linear':
             self.kernel = self.linear_kernel
         elif kernel == 'rbf':
@@ -44,12 +43,12 @@ class mySVM:
         if x2.ndim == 1:
             x2 = x2.reshape(1, -1)
             
-        # Hitung jarak Euclidean kuadrat
+        # jarak Euclidean kuadrat
         dist_sq = np.sum(x1**2, axis=1).reshape(-1, 1) + np.sum(x2**2, axis=1) - 2 * np.dot(x1, x2.T)
         return np.exp(-gamma * dist_sq)
 
     def fit(self, X, y):
-        # Simpan data training
+        
         self.X_train = X.copy()
         self.y_train = y.copy()
         self.classes_ = np.unique(y)
@@ -57,7 +56,7 @@ class mySVM:
         n_samples, n_features = X.shape
         
         if len(self.classes_) == 2:
-            # Klasifikasi biner: ubah label menjadi -1 dan 1
+            
             y_binary = np.where(y == self.classes_[0], -1, 1)
             self._fit_binary(X, y_binary)
         else:
@@ -70,13 +69,11 @@ class mySVM:
         self.alpha = np.zeros(n_samples)
         self.b = 0
         
-        # Precompute matrix kernel
         K = self.kernel(X, X)
         
         # Gradient descent untuk SVM
         for epoch in range(self.n_iters):
             for i in range(n_samples):
-                # Hitung prediksi
                 prediction = np.sum(self.alpha * y * K[i, :]) + self.b
                 
                 if y[i] * prediction < 1:
@@ -89,8 +86,6 @@ class mySVM:
             
             self.alpha = np.clip(self.alpha, 0, self.C)
             
-        
-        # Simpan support vectors (vektor dengan alpha > 0)
         support_vector_indices = self.alpha > 1e-5
         self.support_vectors_ = X[support_vector_indices]
         self.support_vector_labels_ = y[support_vector_indices]
@@ -106,7 +101,7 @@ class mySVM:
             
             y_binary = np.where(y == class_label, 1, -1)
             
-            # Train classifier biner
+            
             svm_binary = mySVM(
                 learning_rate=self.lr,
                 C=self.C,
@@ -126,7 +121,7 @@ class mySVM:
             predictions = self.predict(X)
             return np.mean(predictions == y)
         except:
-            return 0.0  # Return 0 jika prediksi gagal
+            return 0.0 
 
     def decision_function(self, X):
         if not hasattr(self, 'classes_') or self.classes_ is None:
@@ -151,7 +146,6 @@ class mySVM:
             return scores
 
     def predict(self, X):
-        # Validasi model sudah trained
         if self.classes_ is None:
             raise ValueError("Model belum di-training. Panggil fit() terlebih dahulu.")
             

@@ -8,17 +8,17 @@ class myPCA:
         self.explained_variance_ratio_ = None
 
     def fit(self, X):
-        # 1. Standarisasi data
+        # 1. Standarisasi 
         self.mean = np.mean(X, axis=0)
         X_std = X - self.mean
         
-        # 2. Hitung covariance matrix
+        # 2. covariance matrix
         cov_matrix = np.cov(X_std, rowvar=False)
         
         # 3. Hitung eigenvectors dan eigenvalues
         eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
         
-        # 4. Urutkan eigenvectors berdasarkan eigenvalues (terbesar ke terkecil)
+        # 4. Urutkan eigenvectors berdasarkan eigenvalues 
         eigenvectors = eigenvectors.T
         idxs = np.argsort(eigenvalues)[::-1]
         eigenvalues = eigenvalues[idxs]
@@ -27,7 +27,7 @@ class myPCA:
         # 5. Pilih semua eigenvectors
         self.components = eigenvectors
 
-        # 6. Hitung explained variance ratio
+        # 6. explained variance ratio
         total_variance = np.sum(eigenvalues)
         explained_variance = eigenvalues[:X.shape[1]]
         self.explained_variance_ratio_ = explained_variance / total_variance
@@ -35,26 +35,26 @@ class myPCA:
 
     def fit_transform(self, X):
 
-        # 1. Standarisasi data
+        # 1. Standarisasi
         self.mean = np.mean(X, axis=0)
         X_std = X - self.mean
         
-        # 2. Hitung covariance matrix
+        # 2. covariance matrix
         cov_matrix = np.cov(X_std, rowvar=False)
         
-        # 3. Hitung eigenvectors dan eigenvalues
+        # 3. eigenvectors dan eigenvalues
         eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
         
-        # 4. Urutkan eigenvectors berdasarkan eigenvalues (terbesar ke terkecil)
+        # 4. Urutkan eigenvectors berdasarkan eigenvalues
         eigenvectors = eigenvectors.T
         idxs = np.argsort(eigenvalues)[::-1]
         eigenvalues = eigenvalues[idxs]
         eigenvectors = eigenvectors[idxs]
         
-        # 5. Pilih k eigenvectors pertama (k = n_components)
+        # 5. k eigenvectors pertama
         self.components = eigenvectors[0:self.n_components]
         
-        # 6. Hitung explained variance ratio
+        # 6. explained variance ratio
         total_variance = np.sum(eigenvalues)
         explained_variance = eigenvalues[:self.n_components]
         self.explained_variance_ratio_ = explained_variance / total_variance

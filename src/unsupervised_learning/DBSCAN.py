@@ -27,11 +27,10 @@ class myDBSCAN:
         cluster_id = 0
 
         for i in range(n_samples):
-            # Lewati titik yang sudah dikunjungi
             if self.labels_[i] != 0:
                 continue
             
-            # Temukan tetangga dari titik saat ini
+            # tetangga dari titik saat ini
             neighbors_indices = self._get_neighbors(X, i)
             
             # Jika jumlah tetangga kurang dari min_samples, tandai sebagai noise (sementara)
@@ -50,23 +49,22 @@ class myDBSCAN:
         return neighbors
 
     def _expand_cluster(self, X, point_index, neighbors_indices, cluster_id):
-        # Tetapkan ID cluster ke core point awal
+
         self.labels_[point_index] = cluster_id
         
-        # Gunakan list sebagai antrian untuk memproses semua tetangga
         i = 0
         while i < len(neighbors_indices):
             current_neighbor_index = neighbors_indices[i]
             
-            # Jika tetangga ini noise, jadikan border point dari cluster saat ini
+            # Jika tetangga adalah noise, jadikan border point dari cluster saat ini
             if self.labels_[current_neighbor_index] == -1:
                 self.labels_[current_neighbor_index] = cluster_id
-            
+
             # Proses jika tetangga ini belum dikunjungi
             elif self.labels_[current_neighbor_index] == 0:
                 self.labels_[current_neighbor_index] = cluster_id
                 
-                # Temukan tetangga dari tetangga ini (density-reachable)
+                # tetangga dari tetangga ini
                 new_neighbors = self._get_neighbors(X, current_neighbor_index)
                 
                 # Jika tetangga ini juga core point, tambahkan tetangganya ke antrian

@@ -34,16 +34,16 @@ class myKNN:
     
     def _predict_single(self, x_test):
 
-        # 1. Menghitung jarak dari titik uji ke semua titik training
+        # 1. jarak dari titik uji ke semua titik training
         distances = [self._calculate_distance(x_test, x_train) for x_train in self.X_train]
         
-        # 2. Dapatkan indeks dari k tetangga terdekat
+        # 2. indeks dari k tetangga terdekat
         k_indices = np.argsort(distances)[:self.k]
         
-        # 3. Mendapatkan label dari k tetangga terdekat
+        # 3. label dari k tetangga terdekat
         k_nearest_labels = [self.y_train[i] for i in k_indices]
         
-        # 4. Tentukan label yang paling sering muncul
+        # 4. label yang paling sering muncul
         most_common = Counter(k_nearest_labels).most_common(1)
         return most_common[0][0]
 

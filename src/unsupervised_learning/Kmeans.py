@@ -18,14 +18,11 @@ class myKmeans:
             self.centroids = X[random_indices]
             
         elif self.init_method == 'kmeans++': # BONUS
-            # 1. Pilih centroid pertama secara acak
             centroids = [X[np.random.randint(n_samples)]]
             
             for _ in range(1, self.n_clusters):
-                # 2. Hitung kuadrat jarak dari setiap titik ke centroid terdekat
                 dist_sq = np.array([min([np.linalg.norm(x-c)**2 for c in centroids]) for x in X])
                 
-                # 3. Pilih titik data baru sebagai centroid dengan probabilitas sebanding dengan kuadrat jaraknya
                 probs = dist_sq / dist_sq.sum()
                 cumulative_probs = probs.cumsum()
                 r = np.random.rand()
@@ -40,13 +37,10 @@ class myKmeans:
         self._initialize_centroids(X)
 
         for _ in range(self.max_iters):
-            # 1. Tentukan cluster untuk setiap titik data
             labels = self._assign_clusters(X)
 
-            # 2. Perbarui posisi centroid
             new_centroids = self._update_centroids(X, labels)
 
-            # (Cek konvergensi) jika centroid tidak berubah, hentikan iterasi
             if np.all(self.centroids == new_centroids):
                 break
             

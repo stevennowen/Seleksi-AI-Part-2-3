@@ -55,12 +55,12 @@ class mySoftmaxRegression:
             linear_model = np.dot(X, self.weights) + self.bias
             y_pred = self._softmax(linear_model)
             
-            # Hitung gradien
+            # gradien
             error = y_pred - y_one_hot
             dw = (1 / n_samples) * np.dot(X.T, error)
             db = (1 / n_samples) * np.sum(error, axis=0)
             
-            # Tambahkan regularisasi
+            # regularisasi
             if self.regularization == 'l2':
                 dw += (self.lambda_param / n_samples) * self.weights
             
@@ -81,14 +81,14 @@ class mySoftmaxRegression:
             linear_model = np.dot(X, self.weights)
             probas = self._softmax(linear_model)
             
-            # Hitung gradien
+            #  gradien
             gradient = (1 / n_samples) * np.dot(X.T, (probas - y_one_hot))
             
-            # Tambahkan regularisasi
+            # regularisasi
             if self.regularization == 'l2':
                 gradient += (self.lambda_param / n_samples) * self.weights
             
-            # Komputasi Hessian dengan aproksimasi per kelas
+            # Hessian dengan aproksimasi per kelas
             for c in range(n_classes):
                 p_c = probas[:, c]
                 diag_w = p_c * (1 - p_c)
