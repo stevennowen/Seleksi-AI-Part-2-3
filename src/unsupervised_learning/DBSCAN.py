@@ -33,7 +33,7 @@ class myDBSCAN:
             # tetangga dari titik saat ini
             neighbors_indices = self._get_neighbors(X, i)
             
-            # Jika jumlah tetangga kurang dari min_samples, tandai sebagai noise (sementara)
+            # Jika jumlah tetangga kurang dari min_samples, tandai sebagai noise
             if len(neighbors_indices) < self.min_samples:
                 self.labels_[i] = -1 
             else:
