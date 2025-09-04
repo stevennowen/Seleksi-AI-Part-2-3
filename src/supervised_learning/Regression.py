@@ -127,16 +127,19 @@ class mySoftmaxRegression:
         return loss
 
     def predict(self, X):
+        probas = self.predict_proba(X)
+        predicted_indices = np.argmax(probas, axis=1)
+        predicted_labels = self.classes_[predicted_indices]
+        return predicted_labels
+    
+    def predict_proba(self, X):
         if self.optimizer == 'newton':
             X = self._add_intercept(X)
             linear_model = np.dot(X, self.weights)
         else:
             linear_model = np.dot(X, self.weights) + self.bias
             
-        probas = self._softmax(linear_model)
-        predicted_indices = np.argmax(probas, axis=1)
-        predicted_labels = self.classes_[predicted_indices]
-        return predicted_labels
+        return self._softmax(linear_model)
     
     def get_params(self, deep=True):
         return {

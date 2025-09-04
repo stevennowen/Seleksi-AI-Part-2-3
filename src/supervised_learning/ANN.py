@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.lib.stride_tricks import as_strided
 
 class Activation:
     def forward(self, inputs):
@@ -100,6 +101,162 @@ class DenseLayer:
             
         self.dinputs = np.dot(grad_activation, self.weights.T)
         return self.dinputs
+    
+
+# Implementasi dengan Image to Column agar cepat
+def get_im2col_indices(x_shape, field_height, field_width, padding=1, stride=1):
+    N, C, H, W = x_shape
+    out_height = (H + 2 * padding - field_height) // stride + 1
+    out_width = (W + 2 * padding - field_width) // stride + 1
+
+    i0 = np.repeat(np.arange(field_height), field_width)
+    i0 = np.tile(i0, C)
+    i1 = stride * np.repeat(np.arange(out_height), out_width)
+    j0 = np.tile(np.arange(field_width), field_height * C)
+    j1 = stride * np.tile(np.arange(out_width), out_height)
+    i = i0.reshape(-1, 1) + i1.reshape(1, -1)
+    j = j0.reshape(-1, 1) + j1.reshape(1, -1)
+
+    k = np.repeat(np.arange(C), field_height * field_width).reshape(-1, 1)
+    return (k, i, j)
+
+def im2col(x, field_height, field_width, padding=1, stride=1):
+    p = padding
+    x_padded = np.pad(x, ((0, 0), (0, 0), (p, p), (p, p)), mode='constant')
+    k, i, j = get_im2col_indices(x.shape, field_height, field_width, padding, stride)
+    cols = x_padded[:, k, i, j]
+    C = x.shape[1]
+    cols = cols.transpose(1, 2, 0).reshape(field_height * field_width * C, -1)
+    return cols
+
+def col2im(cols, x_shape, field_height=3, field_width=3, padding=1, stride=1):
+    N, C, H, W = x_shape
+    H_padded, W_padded = H + 2 * padding, W + 2 * padding
+    x_padded = np.zeros((N, C, H_padded, W_padded), dtype=cols.dtype)
+    k, i, j = get_im2col_indices(x_shape, field_height, field_width, padding, stride)
+    cols_reshaped = cols.reshape(C * field_height * field_width, -1, N)
+    cols_reshaped = cols_reshaped.transpose(2, 0, 1)
+    np.add.at(x_padded, (slice(None), k, i, j), cols_reshaped)
+    if padding == 0:
+        return x_padded
+    return x_padded[:, :, padding:-padding, padding:-padding]
+
+class Conv2DLayer:
+    def __init__(self, n_filters, kernel_size, strides=(1, 1), use_padding=False, activation=None):
+        self.n_filters = n_filters
+        self.kernel_size = kernel_size if isinstance(kernel_size, tuple) else (kernel_size, kernel_size)
+        self.strides = strides[0] if isinstance(strides, tuple) else strides
+        self.use_padding = use_padding
+        self.padding = (self.kernel_size[0] - 1) // 2 if use_padding else 0
+        self.activation = activation() if activation and isinstance(activation, type) else activation
+        self.weights = None
+        self.biases = None
+        self.regularization = None
+        self.lambda_param = 0.01
+
+    def _initialize_parameters(self, input_shape):
+        input_depth = input_shape[1]
+        std = np.sqrt(2.0 / (input_depth * self.kernel_size[0] * self.kernel_size[1]))
+        self.weights = np.random.normal(0, std, (self.n_filters, input_depth, self.kernel_size[0], self.kernel_size[1]))
+        self.biases = np.zeros((self.n_filters, 1))
+        
+    def forward(self, inputs):
+        if self.weights is None:
+            self._initialize_parameters(inputs.shape)
+            
+        n_samples, C, H, W = inputs.shape
+        KH, KW = self.kernel_size
+        
+        out_height = (H - KH + 2 * self.padding) // self.strides + 1
+        out_width = (W - KW + 2 * self.padding) // self.strides + 1
+        
+        self.X_col = im2col(inputs, KH, KW, self.padding, self.strides)
+        W_col = self.weights.reshape(self.n_filters, -1)
+        
+        out = W_col @ self.X_col + self.biases
+        
+        self.output = out.reshape(self.n_filters, out_height, out_width, n_samples).transpose(3, 0, 1, 2)
+        self.inputs = inputs
+        
+        if self.activation:
+            self.output = self.activation.forward(self.output)
+            
+        return self.output
+
+    def backward(self, grad_outputs):
+        if self.activation:
+            grad_outputs = self.activation.backward(grad_outputs)
+
+        grad_outputs_reshaped = grad_outputs.transpose(1, 2, 3, 0).reshape(self.n_filters, -1)
+        
+        self.dbiases = np.sum(grad_outputs, axis=(0, 2, 3)).reshape(self.n_filters, -1)
+        
+        W_col = self.weights.reshape(self.n_filters, -1)
+        dW_col = grad_outputs_reshaped @ self.X_col.T
+        self.dweights = dW_col.reshape(self.weights.shape)
+
+        dX_col = W_col.T @ grad_outputs_reshaped
+        self.dinputs = col2im(dX_col, self.inputs.shape, self.kernel_size[0], self.kernel_size[1], self.padding, self.strides)
+
+        if self.regularization == 'l2':
+            self.dweights += self.lambda_param * self.weights
+        elif self.regularization == 'l1':
+            self.dweights += self.lambda_param * np.sign(self.weights)
+            
+        return self.dinputs
+
+class MaxPooling2DLayer:
+    def __init__(self, pool_size, strides=None):
+        self.pool_size = pool_size if isinstance(pool_size, tuple) else (pool_size, pool_size)
+        self.strides = strides if strides else self.pool_size
+        if isinstance(self.strides, int):
+            self.strides = (self.strides, self.strides)
+
+    def forward(self, inputs):
+        self.inputs = inputs
+        N, C, H, W = inputs.shape
+        PH, PW = self.pool_size
+        SH, SW = self.strides
+
+        out_h = (H - PH) // SH + 1
+        out_w = (W - PW) // SW + 1
+        
+        X_reshaped = inputs.reshape(N * C, 1, H, W)
+        self.X_col = im2col(X_reshaped, PH, PW, 0, SH)
+        
+        max_idx = np.argmax(self.X_col, axis=0)
+        out = self.X_col[max_idx, np.arange(max_idx.size)]
+        
+        self.output = out.reshape(out_h, out_w, N, C).transpose(2, 3, 0, 1)
+        self.max_idx = max_idx
+        
+        return self.output
+
+    def backward(self, grad_outputs):
+        N, C, H, W = self.inputs.shape
+        PH, PW = self.pool_size
+        SH, SW = self.strides
+        
+        dX_col = np.zeros_like(self.X_col)
+        grad_outputs_flat = grad_outputs.transpose(2, 3, 0, 1).ravel()
+        
+        dX_col[self.max_idx, np.arange(self.max_idx.size)] = grad_outputs_flat
+        
+        self.dinputs = col2im(dX_col, (N * C, 1, H, W), PH, PW, 0, SH)
+        self.dinputs = self.dinputs.reshape(self.inputs.shape)
+        
+        return self.dinputs
+
+class FlattenLayer:
+    def __init__(self):
+        self.input_shape = None
+        
+    def forward(self, inputs):
+        self.input_shape = inputs.shape
+        return inputs.reshape(inputs.shape[0], -1)
+    
+    def backward(self, grad_outputs):
+        return grad_outputs.reshape(self.input_shape)
 
 class Loss:
     def calculate(self, y_pred, y_true):
@@ -247,15 +404,16 @@ class myANN:
             grad = layer.backward(grad)
 
     def update(self):
-        self.optimizer.update_params(self.layers[-1])
-        for layer in reversed(self.layers[:-1]):
-            self.optimizer.update_params(layer)
-
+        for layer in reversed(self.layers):
+            # Hanya update layer yang memiliki parameters (weights/biases)
+            if hasattr(layer, 'dweights') or hasattr(layer, 'dbiases'):
+                self.optimizer.update_params(layer)
+    
     def train(self, X, y, epochs, batch_size, X_val=None, y_val=None, verbose=True):
         train_loss_history = []
         val_loss_history = []
         n_samples = len(X)
-        
+
         for epoch in range(epochs):
             permutation = np.random.permutation(n_samples)
             X_shuffled = X[permutation]
@@ -273,10 +431,12 @@ class myANN:
                 reg_loss = 0
                 if self.regularization == 'l2':
                     for layer in self.layers:
-                        reg_loss += 0.5 * self.lambda_param * np.sum(layer.weights * layer.weights)
+                        if hasattr(layer, 'weights'):  # Hanya layer yang punya weights
+                            reg_loss += 0.5 * self.lambda_param * np.sum(layer.weights * layer.weights)
                 elif self.regularization == 'l1':
                     for layer in self.layers:
-                        reg_loss += self.lambda_param * np.sum(np.abs(layer.weights))
+                        if hasattr(layer, 'weights'):  # Hanya layer yang punya weights
+                            reg_loss += self.lambda_param * np.sum(np.abs(layer.weights))
                 
                 total_loss = loss + reg_loss
                 epoch_loss += total_loss
@@ -295,7 +455,7 @@ class myANN:
             if verbose:
                 val_info = f", Val Loss: {val_loss:.4f}" if X_val is not None else ""
                 print(f'Epoch {epoch}, Train Loss: {avg_loss:.4f}{val_info}')
-        
+
         return train_loss_history, val_loss_history
 
     def predict(self, X):
