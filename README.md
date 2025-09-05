@@ -1,4 +1,4 @@
-# SELEKSI LAB AI 
+# SELEKSI LAB AI Part 2-3
 -  Steven Owen
 -  NIM : 13523103
 # Cara Kerja Program (Supervised dan Unsupervised)
