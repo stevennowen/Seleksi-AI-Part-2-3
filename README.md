@@ -40,5 +40,6 @@ pip install -r requirements.txt
 - SARSA
 
 # Tautan 
+- Teori (Bagian 1) : https://docs.google.com/document/d/1ILm3GquAImeZuUTqy75a-Pel08WeTUxHRzCjRrtjNqQ/edit?usp=sharing
 - Reinforcement Learning (Bagian 4) : https://github.com/stevennowen/Seleksi-AI-Part4.git
 - Text Classification (Bonus 3) : https://github.com/stevennowen/Seleksi-AI-Bonus3.git
