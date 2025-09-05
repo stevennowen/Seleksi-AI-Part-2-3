@@ -16,7 +16,12 @@ pip install -r requirements.txt
 - Support Vector Machine (SVM)
 - Artificial Neural Networks (ANN)
 
+## Bonus yang diimplementasikan
+- 
+
 # Unsupervised Learning (Bagian 3)
 - K-Means Clustering
 - Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
 - Principal Component Analysis (PCA)
+
+## Bonus yang diimplementasikan
