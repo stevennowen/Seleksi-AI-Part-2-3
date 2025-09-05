@@ -15,7 +15,6 @@ pip install -r requirements.txt
 - Classification and Regression Trees (CART)
 - Support Vector Machine (SVM)
 - Artificial Neural Networks (ANN)
-
 ## Bonus yang diimplementasikan
 - 
 
