@@ -51,7 +51,7 @@ class mySoftmaxRegression:
         n_classes = y_one_hot.shape[1]
         
         for i in range(self.n_iters):
-            # Langkah maju (Forward pass)
+            # Langkah maju
             linear_model = np.dot(X, self.weights) + self.bias
             y_pred = self._softmax(linear_model)
             
