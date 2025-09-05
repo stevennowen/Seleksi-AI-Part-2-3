@@ -2,8 +2,16 @@
 -  Steven Owen
 -  NIM : 13523103
 # Cara Kerja Program (Supervised dan Unsupervised)
-1. Install semua dependensi yang dibutuhkan 
+- Install semua dependensi yang dibutuhkan 
 ```
 pip install -r requirements.txt
 ```
-2. Run All pada file doe
+- Run All pada file doe
+
+# Supervised Learning (Bagian 2)
+✔ K-Nearest Neighbors (KNN)
+- Logistic Regression
+- Gaussian Naive Bayes
+- Classification and Regression Trees (CART)
+- Support Vector Machine (SVM)
+- Artificial Neural Networks (ANN)
