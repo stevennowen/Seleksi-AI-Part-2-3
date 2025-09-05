@@ -38,3 +38,7 @@ pip install -r requirements.txt
 # Reinforcement Learning (Bagian 4)
 - Q-LEARNING
 - SARSA
+
+# Tautan 
+- Reinforcement Learning (Bagian 4) : https://github.com/stevennowen/Seleksi-AI-Part4.git
+- Text Classification (Bonus 3) : https://github.com/stevennowen/Seleksi-AI-Bonus3.git
