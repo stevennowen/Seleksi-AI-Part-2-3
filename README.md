@@ -24,8 +24,8 @@ pip install -r requirements.txt
 - SGD optimizer pada ANN
 - Adagrad optimizer pada ANN
 - Adam optimizer pada ANN
-- Soft Voting (Ensemble model) pada Logistic Regression (Bonus 1)
-- Convolutional Neural Network (LeNet, AlexNet, VGGNet, dan ZFNet) pada ANN (Bonus 2)
+- Soft Voting (Ensemble model) pada Logistic Regression **(Bonus 1)**
+- Convolutional Neural Network (LeNet, AlexNet, VGGNet, dan ZFNet) pada ANN **(Bonus 2)**
 
 # Unsupervised Learning (Bagian 3)
 - K-Means Clustering
