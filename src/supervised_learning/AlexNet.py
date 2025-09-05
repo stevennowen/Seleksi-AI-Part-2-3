@@ -18,6 +18,6 @@ def create_alexnet_model():
     model.add(DenseLayer(n_inputs=256 * 6 * 6, n_neurons=4096, activation=ReLU))
     model.add(DenseLayer(n_inputs=4096, n_neurons=4096, activation=ReLU))
 
-    model.add(DenseLayer(n_inputs=4096, n_neurons=10, activation=Softmax)) # Asumsi 10 kelas
+    model.add(DenseLayer(n_inputs=4096, n_neurons=10, activation=Softmax)) 
     
     return model
